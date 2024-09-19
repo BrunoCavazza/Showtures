@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presentación de Imágenes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #000;
+        }
+
+        .slideshow-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #slideshow-image {
+            max-width: 100%;
+            max-height: 100%;
+            opacity: 1; /* Mostrar la imagen por defecto */
+            transition: opacity 1s ease-in-out; /* Aplicar la transición */
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow-container">
+        <img id="slideshow-image" src="" alt="Imagen de presentación">
+    </div>
+    <script>
+        const imageDuration = 5000; // duracion de la imagen
+        const fadeDuration = 1000; // fade out
+
+        async function loadImages() {
+            try {
+                const response = await fetch('http://localhost:5000/imagenes-list');
+                const data = await response.json();
+                return data.images;
+            } catch (error) {
+                console.error('Error al cargar las imágenes:', error);
+                return [];
+            }
+        }
+
+        // Mostrar una imagen en la presentación
+        function showImage(imageSrc) {
+            const imgElement = document.getElementById('slideshow-image');
+            
+            imgElement.style.opacity = 0;
+
+            setTimeout(() => {
+                imgElement.src = `../imagenes/${imageSrc}`;
+                
+                
+                imgElement.onload = () => {
+                    imgElement.style.opacity = 1;
+                };
+            }, fadeDuration);
+        }
+
+        // presentador de imágenes
+        async function startSlideshow() {
+            const images = await loadImages();
+            if (images.length === 0) {
+                console.log('No hay imágenes para mostrar.');
+                return;
+            }
+            let currentIndex = 0;
+            setInterval(() => {
+                showImage(images[currentIndex]);
+                currentIndex = (currentIndex + 1) % images.length;
+            }, imageDuration);
+        }
+
+        startSlideshow();
+    </script>
+</body>
+</html>
