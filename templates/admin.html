@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de fotos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.4em;
+        }
+
+        button {
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            color: white;
+        }
+
+        #clear-all {
+            background-color: #dc3545;
+        }
+
+        #clear-all:hover {
+            background-color: #a71d2a;
+        }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+
+        .photo-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+        }
+
+        .photo-card img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-card .delete-btn {
+            width: 100%;
+            background-color: #6c757d;
+            border-radius: 0;
+            padding: 8px;
+        }
+
+        .photo-card .delete-btn:hover {
+            background-color: #495057;
+        }
+
+        #empty {
+            color: #888;
+            margin-top: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Administración de fotos ({{ images|length }})</h1>
+        <button id="clear-all">Borrar todas</button>
+    </header>
+
+    {% if images %}
+    <div class="gallery">
+        {% for image in images %}
+        <div class="photo-card" data-filename="{{ image }}">
+            <img src="/imagenes/{{ image }}" alt="{{ image }}">
+            <button class="delete-btn">Borrar</button>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p id="empty">No hay fotos subidas todavía.</p>
+    {% endif %}
+
+    <script>
+        const adminPath = '{{ admin_path }}';
+
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const card = btn.closest('.photo-card');
+                const filename = card.dataset.filename;
+                if (!confirm(`¿Borrar ${filename}?`)) return;
+
+                const response = await fetch(`/${adminPath}/delete/${encodeURIComponent(filename)}`, {
+                    method: 'POST',
+                });
+                if (response.ok) {
+                    card.remove();
+                }
+            });
+        });
+
+        document.getElementById('clear-all').addEventListener('click', async () => {
+            if (!confirm('¿Borrar TODAS las fotos? Esta acción no se puede deshacer.')) return;
+
+            const response = await fetch(`/${adminPath}/clear`, { method: 'POST' });
+            if (response.ok) {
+                window.location.reload();
+            }
+        });
+    </script>
+</body>
+</html>

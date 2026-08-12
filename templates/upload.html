@@ -48,49 +48,46 @@
             color: green;
         }
 
+        .upload-container.dragover {
+            border-color: #28a745;
+            background-color: #f0fff4;
+        }
+
     </style>
 </head>
 <body>
-    <div class="upload-container">
+    <div class="upload-container" id="drop-zone">
         <h2>Sube tus imágenes</h2>
         <form action="/" method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" multiple>
+            <input type="file" name="file" id="file-input" multiple>
             <input type="submit" value="Subir">
-        </form>        
+        </form>
         <div id="status"></div>
     </div>
 
     <script>
-        document.getElementById('upload-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const input = document.getElementById('image-input');
-            const formData = new FormData();
+        // Permite arrastrar y soltar archivos sobre el input; el envío
+        // sigue siendo un POST de formulario normal (sin recarga de JS).
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
 
-            if (input.files.length > 0) {
-                for (let i = 0; i < input.files.length; i++) {
-                    formData.append('images', input.files[i]);
-                }
+        ['dragover', 'dragenter'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+        });
 
-                try {
-                    const response = await fetch('/upload', {
-                        method: 'POST',
-                        body: formData,
-                    });
+        ['dragleave', 'drop'].forEach(evt => {
+            dropZone.addEventListener(evt, (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+            });
+        });
 
-                    const result = await response.json();
-                    
-                    if (response.ok) {
-                        document.getElementById('status').textContent = 'Imágenes subidas correctamente';
-                        // Espera 2 segundos y luego recarga la página
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 2000);
-                    } else {
-                        document.getElementById('status').textContent = 'Error al subir las imágenes';
-                    }
-                } catch (error) {
-                    document.getElementById('status').textContent = 'Error al subir las imágenes';
-                }
+        dropZone.addEventListener('drop', (e) => {
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
             }
         });
     </script>
